@@ -3445,6 +3445,17 @@ value nme_text_field_get_line_metrics(value inText,value inIndex,value outMetric
 }
 DEFINE_PRIM(nme_text_field_get_line_metrics,3);
 
+value nme_text_field_set_selection(value inText,value inStart,value inEnd)
+{
+   TextField *text;
+   if (AbstractToObject(inText,text))
+   {
+      const int l = text->setSelection(val_int(inStart),val_int(inEnd));
+   }
+   return alloc_null();
+}
+DEFINE_PRIM(nme_text_field_set_selection,3);
+
 
 #define TEXT_PROP_GET(prop,Prop,to_val) \
 value nme_text_field_get_##prop(value inHandle) \
@@ -3500,13 +3511,13 @@ TEXT_PROP_GET(text_height,TextHeight,alloc_float);
 TEXT_PROP_GET(max_scroll_h,MaxScrollH,alloc_int);
 TEXT_PROP_GET(max_scroll_v,MaxScrollV,alloc_int);
 TEXT_PROP_GET(bottom_scroll_v,BottomScrollV,alloc_int);
+TEXT_PROP_GET(caret_index,CaretIndex,alloc_int);
 TEXT_PROP(scroll_h,ScrollH,alloc_int,val_int);
 TEXT_PROP(scroll_v,ScrollV,alloc_int,val_int);
 TEXT_PROP_GET(num_lines,NumLines,alloc_int);
 TEXT_PROP(max_chars,MaxChars,alloc_int,val_int);
 TEXT_PROP_GET_IDX(line_text,LineText,alloc_wstring);
 TEXT_PROP_GET_IDX(line_offset,LineOffset,alloc_int);
-
 
 value nme_bitmap_data_create(value* arg, int nargs)
 {

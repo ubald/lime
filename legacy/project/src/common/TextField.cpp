@@ -98,6 +98,7 @@ TextField::TextField(bool inInitRef) : DisplayObject(inInitRef),
    mLastUpDownX = -1;
    needsSoftKeyboard = true;
    mHasCaret = false;
+   mHasFocus = false;
    screenGrid = false;
    mBlink0 = GetTimeStamp();
 }
@@ -545,8 +546,6 @@ int TextField::PointToChar(UserPoint inPoint) const
    return getLength();
 }
 
-
-
 int TextField::getSelectionBeginIndex()
 {
    if (mSelectMax <= mSelectMin)
@@ -559,6 +558,17 @@ int TextField::getSelectionEndIndex()
    if (mSelectMax <= mSelectMin)
       return caretIndex;
    return mSelectMax;
+}
+
+int TextField::setSelection(int inFirst, int inLast)
+{
+   mSelectMin = std::max(0,inFirst);
+   mSelectMax = std::min(inLast, getLength());
+   mGfxDirty = true;
+   mTilesDirty = true;
+   mCaretDirty = true;
+   ShowCaret();
+   return mSelectMax-mSelectMin;
 }
 
 
@@ -1396,7 +1406,7 @@ void TextField::BuildBackground()
       }
 
       //printf("%d,%d\n", mSelectMin , mSelectMax);
-      if (mSelectMin < mSelectMax)
+      if (mHasFocus && mSelectMin < mSelectMax)
       {
          UserPoint scroll = GetScrollPos();
          if (!mHighlightGfx)
@@ -1455,10 +1465,15 @@ void TextField::highlightRect(double x0, double y0, double w, double h)
       mHighlightGfx->drawRect(x0,y0,w,h);
 }
 
-bool TextField::CaretOn()
+bool TextField::HasFocus()
 {
    Stage *s = getStage();
-   return (s && isInput && s->GetFocusObject()==this && !(( (int)((GetTimeStamp()-mBlink0)*3)) & 1));
+   return (s && isInput && s->GetFocusObject()==this);
+}
+
+bool TextField::CaretOn()
+{
+   return (HasFocus() && !(( (int)((GetTimeStamp()-mBlink0)*3)) & 1));
 }
 
 bool TextField::IsCacheDirty()
@@ -1479,6 +1494,13 @@ void  TextField::toScreenGrid(UserPoint &ioPoint, const Matrix &inMatrix)
 
 void TextField::Render( const RenderTarget &inTarget, const RenderState &inState )
 {
+   bool focused = HasFocus();
+
+   if (!focused && focused != mHasFocus) {
+      ClearSelection();
+   }
+   mHasFocus = focused;
+
    if (inState.mPhase==rpBitmap && inState.mWasDirtyPtr && !*inState.mWasDirtyPtr && IsCacheDirty())
    {
       const Matrix &matrix = *inState.mTransform.mMatrix;
@@ -1654,7 +1676,7 @@ void TextField::Render( const RenderTarget &inTarget, const RenderState &inState
                            double right = p.x+tile.mRect.w*fontToLocal;
                            if (right>GAP)
                            {
-                              float *tint = cid>=mSelectMin && cid<mSelectMax ? highlightedColour : groupColour;
+                              float *tint = mHasFocus && cid>=mSelectMin && cid<mSelectMax ? highlightedColour : groupColour;
                               if (pos.x < GAP)
                               {
                                  Rect r = tile.mRect;

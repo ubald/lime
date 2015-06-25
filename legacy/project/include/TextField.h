@@ -170,6 +170,7 @@ public:
    void ShowCaret(bool inFromDrag=false);
    bool FinishEditOnEnter();
 
+   bool HasFocus();
    bool CaretOn();
    bool IsCacheDirty();
 
@@ -214,6 +215,7 @@ private:
    bool mTilesDirty;
    bool mCaretDirty;
    bool mHasCaret;
+   bool mHasFocus;
    double mBlink0;
 
 
